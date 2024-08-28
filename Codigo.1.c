@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +11,7 @@ typedef struct {
     char doador[50];
 } Produto;
 
-// FunÁıes
+// Fun√ß√µes
 void cadastrarProduto(Produto produtos[], int *numProdutos);
 void imprimirEstoque(Produto produtos[], int numProdutos);
 void salvarProdutos(Produto produtos[], int numProdutos);
@@ -20,11 +19,13 @@ void carregarProdutos(Produto produtos[], int *numProdutos);
 void removerProduto(Produto produtos[], int *numProdutos);
 
 void limparTela() {
-    #ifdef _WIN32
-        system("cls");
-    #else
-        system("clear");
-    #endif
+    system("clear");
+}
+
+void esperarTecla() {
+    printf("Pressione Enter para continuar...");
+    getchar(); // Aguarda a entrada do usu√°rio
+    getchar(); // Aguarda a entrada do usu√°rio
 }
 
 void exibirLogin() {
@@ -73,24 +74,12 @@ int main() {
         } else {
             tentativas--;
             if (tentativas > 0) {
-                printf("\nERRO! A Senha/Login invalido.\n");
-                printf("Voce tem %d tentativas restantes.\n", tentativas);
-                #ifdef _WIN32
-                    system("pause");
-                #else
-                    printf("Pressione Enter para continuar...");
-                    getchar(); // Limpa o buffer do teclado
-                    getchar(); // Aguarda a entrada do usu·rio
-                #endif
+                printf("\nERRO! Senha/Login inv√°lido.\n");
+                printf("Voc√™ tem %d tentativas restantes.\n", tentativas);
+                esperarTecla();
             } else {
                 printf("\nLimite de tentativas excedido.\n");
-                #ifdef _WIN32
-                    system("pause");
-                #else
-                    printf("Pressione Enter para continuar...");
-                    getchar(); // Limpa o buffer do teclado
-                    getchar(); // Aguarda a entrada do usu·rio
-                #endif
+                esperarTecla();
             }
         }
     }
@@ -107,48 +96,24 @@ int main() {
         switch (opcao) {
             case 1:
                 cadastrarProduto(produtos, &numProdutos);
-                salvarProdutos(produtos, numProdutos); // Salvar apÛs o cadastro
-                #ifdef _WIN32
-                    system("pause");
-                #else
-                    printf("Pressione Enter para continuar...");
-                    getchar(); // Limpa o buffer do teclado
-                    getchar(); // Aguarda a entrada do usu·rio
-                #endif
+                salvarProdutos(produtos, numProdutos); // Salvar ap√≥s o cadastro
+                esperarTecla();
                 break;
             case 2:
                 imprimirEstoque(produtos, numProdutos);
-                #ifdef _WIN32
-                    system("pause");
-                #else
-                    printf("Pressione Enter para continuar...");
-                    getchar(); // Limpa o buffer do teclado
-                    getchar(); // Aguarda a entrada do usu·rio
-                #endif
+                esperarTecla();
                 break;
             case 3:
                 removerProduto(produtos, &numProdutos);
-                salvarProdutos(produtos, numProdutos); // Salvar apÛs a remoÁ„o
-                #ifdef _WIN32
-                    system("pause");
-                #else
-                    printf("Pressione Enter para continuar...");
-                    getchar(); // Limpa o buffer do teclado
-                    getchar(); // Aguarda a entrada do usu·rio
-                #endif
+                salvarProdutos(produtos, numProdutos); // Salvar ap√≥s a remo√ß√£o
+                esperarTecla();
                 break;
             case 4:
                 printf("Saindo...\n");
                 break;
             default:
-                printf("ERRO! Codigo inserido invalido.\n");
-                #ifdef _WIN32
-                    system("pause");
-                #else
-                    printf("Pressione Enter para continuar...");
-                    getchar(); // Limpa o buffer do teclado
-                    getchar(); // Aguarda a entrada do usu·rio
-                #endif
+                printf("ERRO! C√≥digo inserido inv√°lido.\n");
+                esperarTecla();
                 break;
         }
     } while (opcao != 4);
@@ -156,10 +121,36 @@ int main() {
     return 0;
 }
 
-// FunÁ„o para cadastrar um produto
+// Fun√ß√£o para validar a data no formato DD/MM/AAAA
+int validarData(const char* data) {
+    int dia, mes, ano;
+
+    // Verifica o formato b√°sico
+    if (sscanf(data, "%2d/%2d/%4d", &dia, &mes, &ano) != 3)
+        return 0;
+
+    // Verifica se os valores de dia, m√™s e ano s√£o v√°lidos
+    if (ano < 1 || mes < 1 || mes > 12 || dia < 1)
+        return 0;
+
+    // Dias m√°ximos em cada m√™s
+    int diasNoMes[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+    // Ajuste para anos bissextos
+    if ((ano % 4 == 0 && ano % 100 != 0) || (ano % 400 == 0))
+        diasNoMes[1] = 29;
+
+    // Verifica o n√∫mero de dias no m√™s
+    if (dia > diasNoMes[mes - 1])
+        return 0;
+
+    return 1;
+}
+
+// Fun√ß√£o para cadastrar um produto
 void cadastrarProduto(Produto produtos[], int *numProdutos) {
     if (*numProdutos >= 100) {
-        printf("Estoque cheio. Nao e possivel cadastrar mais produtos.\n");
+        printf("Estoque cheio. N√£o √© poss√≠vel cadastrar mais produtos.\n");
         return;
     }
 
@@ -168,8 +159,16 @@ void cadastrarProduto(Produto produtos[], int *numProdutos) {
     scanf("%49s", p.nome);
     printf("Digite a quantidade: ");
     scanf("%d", &p.quantidade);
-    printf("Digite a data de validade (DD/MM/AAAA): ");
-    scanf("%10s", p.dataValidade);
+
+    // Valida a data de validade
+    do {
+        printf("Digite a data de validade (DD/MM/AAAA): ");
+        scanf("%10s", p.dataValidade);
+        if (!validarData(p.dataValidade)) {
+            printf("Data inv√°lida! Tente novamente.\n");
+        }
+    } while (!validarData(p.dataValidade));
+
     printf("Digite o nome do doador: ");
     scanf("%49s", p.doador);
 
@@ -177,7 +176,7 @@ void cadastrarProduto(Produto produtos[], int *numProdutos) {
     (*numProdutos)++;
 }
 
-// FunÁ„o para imprimir o estoque
+// Fun√ß√£o para imprimir o estoque
 void imprimirEstoque(Produto produtos[], int numProdutos) {
     printf("========================================\n");
     printf("              ESTOQUE ATUAL            \n");
@@ -192,7 +191,7 @@ void imprimirEstoque(Produto produtos[], int numProdutos) {
     }
 }
 
-// FunÁ„o para salvar produtos em um arquivo
+// Fun√ß√£o para salvar produtos em um arquivo
 void salvarProdutos(Produto produtos[], int numProdutos) {
     FILE *file = fopen("produtos.txt", "w");
     if (file == NULL) {
@@ -207,7 +206,7 @@ void salvarProdutos(Produto produtos[], int numProdutos) {
     fclose(file);
 }
 
-// FunÁ„o para carregar produtos de um arquivo
+// Fun√ß√£o para carregar produtos de um arquivo
 void carregarProdutos(Produto produtos[], int *numProdutos) {
     FILE *file = fopen("produtos.txt", "r");
     if (file == NULL) {
@@ -222,7 +221,7 @@ void carregarProdutos(Produto produtos[], int *numProdutos) {
     fclose(file);
 }
 
-// FunÁ„o para remover uma quantidade especÌfica de um produto
+// Fun√ß√£o para remover uma quantidade espec√≠fica de um produto
 void removerProduto(Produto produtos[], int *numProdutos) {
     char nome[50];
     int quantidadeRemover;
@@ -237,16 +236,16 @@ void removerProduto(Produto produtos[], int *numProdutos) {
     // Procura o produto pelo nome
     for (i = 0; i < *numProdutos; i++) {
         if (strcmp(produtos[i].nome, nome) == 0) {
-            // Verifica se a quantidade a ser removida È maior do que a disponÌvel
+            // Verifica se a quantidade a ser removida √© maior do que a dispon√≠vel
             if (quantidadeRemover > produtos[i].quantidade) {
-                printf("Quantidade a ser removida È maior do que a disponÌvel.\n");
+                printf("Quantidade a ser removida √© maior do que a dispon√≠vel.\n");
                 return;
             } else if (quantidadeRemover == produtos[i].quantidade) {
-                // Remove o produto se a quantidade a ser removida for igual ‡ disponÌvel
+                // Remove o produto se a quantidade a ser removida for igual √† dispon√≠vel
                 for (int j = i; j < *numProdutos - 1; j++) {
                     produtos[j] = produtos[j + 1];
                 }
-                (*numProdutos)--;  // Reduz o n˙mero de produtos
+                (*numProdutos)--;  // Reduz o n√∫mero de produtos
                 printf("Produto removido com sucesso.\n");
                 return;
             } else {
@@ -258,6 +257,6 @@ void removerProduto(Produto produtos[], int *numProdutos) {
         }
     }
 
-    // Se o produto n„o for encontrado
-    printf("Produto n„o encontrado.\n");
+    // Se o produto n√£o for encontrado
+    printf("Produto n√£o encontrado.\n");
 }
